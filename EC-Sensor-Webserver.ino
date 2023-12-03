@@ -4,11 +4,17 @@
 #include <ESPmDNS.h>
 #include <DHT.h>
 
-const char *ssid = "My-Network";
-const char *password = "chaker123456";
+const char *ssid = "meadowrue";
+const char *password = "ruelovescheese";
+const int DryValue = 3560;
+const int WetValue = 1662;
+int AOUT_PIN = 32;
+int sensorValue = 0;
+int sensorPercent = 0;
 
 WebServer server(80);
-DHT dht(26, DHT11);
+DHT dht(33,DHT22);
+
 
 void handleRoot() {
   char msg[1500];
@@ -29,7 +35,7 @@ void handleRoot() {
     </style>\
   </head>\
   <body>\
-      <h2>ESP32 DHT Server!</h2>\
+      <h2>EC Sensor</h2>\
       <p>\
         <i class='fas fa-thermometer-half' style='color:#ca3517;'></i>\
         <span class='dht-labels'>Temperature</span>\
@@ -42,9 +48,20 @@ void handleRoot() {
         <span>%.2f</span>\
         <sup class='units'>&percnt;</sup>\
       </p>\
+      <p>\
+        <i class='fas fa-tint' style='color:#00add6;'></i>\
+        <span class='dht-labels'>Moisture Serial</span>\
+        <span>%d</span>\
+      </p>\
+      <p>\
+        <i class='fas fa-tint' style='color:#00add6;'></i>\
+        <span class='dht-labels'>Moisture Percentage</span>\
+        <span>%d</span>\
+        <sup class='units'>&percnt;</sup>\
+      </p>\
   </body>\
 </html>",
-           readDHTTemperature(), readDHTHumidity()
+           readDHTTemperature(), readDHTHumidity(), analogRead(AOUT_PIN), readMoisturePercentage()
           );
   server.send(200, "text/html", msg);
 }
@@ -110,4 +127,24 @@ float readDHTHumidity() {
     Serial.println(h);
     return h;
   }
+}
+
+int readMoisturePercentage() {
+  sensorValue = analogRead(AOUT_PIN);
+  sensorPercent = map(sensorValue, DryValue, WetValue, 0, 100);
+  
+  if (sensorPercent > 100) 
+  {
+    sensorPercent = 100;
+  }
+  else if (sensorPercent <0)
+  {
+    sensorPercent = 0;
+  }
+
+  Serial.print("Moisture Percent: ");
+  Serial.print(sensorPercent);
+  Serial.println("%");
+
+   return sensorPercent;
 }
